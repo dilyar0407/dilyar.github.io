@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时区转换器</title>
+
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-color: #f4f4f9; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            color: #333; 
+        }
+        .container { 
+            background: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            width: 300px; 
+            text-align: center; 
+        }
+        h1 { 
+            margin-bottom: 20px; 
+            color: #4a90e2; 
+        }
+        input, select, button { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            box-sizing: border-box;
+        }
+        button { 
+            background-color: #4a90e2; 
+            color: white; 
+            cursor: pointer; 
+            transition: background-color 0.3s; 
+            border: none;
+        }
+        button:hover { 
+            background-color: #357ab8; 
+        }
+        .result { 
+            margin-top: 20px; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>时区转换器</h1>
+        <input type="text" id="time" placeholder="输入时间 (YYYY-MM-DD HH:mm:ss)">
+        <select id="fromZone">
+            <option value="UTC">UTC</option>
+            <option value="Asia/Shanghai">Asia/Shanghai</option>
+            <option value="America/New_York">America/New_York</option>
+        </select>
+        <select id="toZone">
+            <option value="UTC">UTC</option>
+            <option value="Asia/Shanghai">Asia/Shanghai</option>
+            <option value="America/New_York">America/New_York</option>
+        </select>
+        <button onclick="convertTime()">转换</button>
+        <div class="result">
+            <p>转换结果: <span id="result"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // 时区偏移量映射表（UTC偏移小时数）
+        const timezoneOffsets = {
+            'UTC': 0,
+            'Asia/Shanghai': 8,
+            'America/New_York': -5 // 标准时间偏移，实际使用时需考虑夏令时
+        };
+
+        function convertTime() {
+            const timeString = document.getElementById('time').value;
+            const fromZone = document.getElementById('fromZone').value;
+            const toZone = document.getElementById('toZone').value;
+            const result = document.getElementById('result');
+
+            // 验证输入时间格式
+            if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(timeString)) {
+                result.textContent = '请输入正确的时间格式 (YYYY-MM-DD HH:mm:ss)';
+                return;
+            }
+
+            try {
+                // 分解日期时间字符串
+                const [datePart, timePart] = timeString.split(' ');
+                const [year, month, day] = datePart.split('-').map(Number);
+                const [hours, minutes, seconds] = timePart.split(':').map(Number);
+                
+                // 创建日期对象
+                const sourceDate = new Date(year, month - 1, day, hours, minutes, seconds);
+                
+                // 获取时区偏移
+                const fromOffset = timezoneOffsets[fromZone] || 0;
+                const toOffset = timezoneOffsets[toZone] || 0;
+                
+                // 计算时区差异（毫秒）
+                const offsetDiffMs = (toOffset - fromOffset) * 60 * 60 * 1000;
+                
+                // 应用时区差异
+                const targetDate = new Date(sourceDate.getTime() + offsetDiffMs);
+                
+                // 格式化结果
+                const formattedDate = targetDate.toISOString().replace('T', ' ').substring(0, 19);
+                
+                result.textContent = formattedDate;
+            } catch (error) {
+                result.textContent = '转换出错: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
